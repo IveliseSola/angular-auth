@@ -18,16 +18,16 @@ authRoutes.post('/signup', (req, res, next) => {
 
   User.findOne({ username }, '_id', (err, foundUser) => {
     if (foundUser) {
-      res.status(400).json({ message: 'Provide username and password' });
+      res.status(400).json({ message: 'The username already exists' });
       return;
     }
 
-    const salt     = bcrypt.getSaltSync(10);
+    const salt     = bcrypt.genSaltSync(10);
     const hashPass = bcrypt.hashSync(password, salt);
 
     const theUser = new User({
       username,
-      password: hasPass
+      password: hashPass
     });
 
     theUser.save((err) => {
@@ -36,7 +36,7 @@ authRoutes.post('/signup', (req, res, next) => {
         return;
       }
 
-      req.login(thUser, (err) => {
+      req.login(theUser, (err) => {
         if (err) {
           res.status(500).json({ message: 'Something went wrong' });
           return;
@@ -94,3 +94,5 @@ authRoutes.get('/private', (req, res, next) => {
 
   res.status(403).json({ message: 'Unauthorized' });
 });
+
+module.exports = authRoutes;
