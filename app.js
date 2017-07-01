@@ -8,6 +8,10 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 
+const authRoutes = require('./routes/auth-routes');
+const session    = require('express-session');
+const passport   = require('passport');
+
 var app = express();
 
 // view engine setup
@@ -24,6 +28,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/angular-auth');
+
+const passportSetup = require('./config/passport');
+passportSetup(passport);
+
+app.use(session({
+  secret: 'angular auth passport secret shh',
+  resave: true,
+  saveUninitialized: true,
+  cookie : { httpOnly: true, maxAge: 2419200000 }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/', authRoutes);
+
+app.use((req, res, next) => {
+  res.sendfile(__dirname + '/public/index.html');
+}); 
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
